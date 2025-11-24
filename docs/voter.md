@@ -1,101 +1,31 @@
-```mermaid
-graph LR
-    
+ ```mermaid
+ graph TB
+    classDef external stroke:#f00, fill:#f92, color:#fffffff,font-size:20px
+    classDef internal stroke:#f00, fill:lightgrey,  color:#2afff,font-size:20px
+    classDef notify stroke:#00f, fill:#4D9900, color:#ffffff,font-size:20px
+    classDef storage fill:#f96, color:#FFFccc,font-size:20px
+    classDef ui fill:#f9ffff, stroke:#333, stroke-width:2px,font-size:20px
+    classDef domain fill:#afcddd, stroke:#333, stroke-width:2px,font-size:30px
 
- subgraph voter[Voter Domain]
-        externalRegApi[External Registration API]--ACL-->voterService
-        externalRegApi:::external
-        voterUI{{"Voter Registration UI"}}-->
-        voterBff[[Voter Orchestration Service]]-->voterService
-        registrarAdminUI{{"Registration UI"}}
-        voterService[Voter Service]-->voters
-        voterService--validationService
-        voterService-->VRN
-        validationService["Voter Validation Service"]
+
+ subgraph VoterDomain[Voter Domain]
+        PRS["External Registration Service"]--ACL-->VRS
+        VRUI{{"Voter Registration UI"}}-->
+        VORCH[[Voter Orchestration Service]]-->VRS
+        RUI{{"Registration UI"}}-->RASUI
+        VRS[Voter Service]-->Voters
+        VRS-->ValS
+        VRS-->VRN
+        ValS["Voter Validation Service"]-->VRS
         VRN["Voter Notifiction Service"]
-        voters[("Voter Db<br>PostgreSql")]
+        Voters[("Voter Db<br>PostgreSql")]
   end
 
 
- voter:::domain
+ VoterDomain:::domain
  VRN:::notify
- 
- validationService:::internal
- voters:::storage
- voterBff:::orch
- registrarAdminUI:::ui   
-
-
- subgraph legend[Legend]
-  external[Public API]
-  external:::external
-  internal[internal service]
-  internal:::internal
-  storage[(Storage)]
-  storage:::storage
-  ui{{UI}}
-  ui:::ui
-  orch[[Orchestration/BFF]]
-  orch:::orch
-
- end
-
-classDef external  fill:#f92, color:#fffffff,font-size:14px
-classDef internal stroke:#f00, fill:lightgrey,  color:#2afff,font-size:14px
-
-classDef notify stroke:#00f, fill:#4D9900, color:#ffffff,font-size:20px
-
-classDef storage fill:#f96, color:#FFFccc,font-size:20px
-
-classDef ui fill:#f9ffff, stroke:#333, stroke-width:2px,font-size:20px
-
-classDef domain fill:#afcddd, stroke:#333, stroke-width:2px,font-size:30px
-
-classDef orch fill:#aac000, stroke:#333, stroke-width:2px,font-size:14px
+ PRS:::external
+ RS:::internal
+ ValS:::internal
+ Voters:::storage
 ```
-
-```mermaid
-graph TB
-    %% Entry & validation
-    VS[Vote Service] --> VVS[Vote Validation Service<br/>Stateless, rule + crypto check]
-
-    %% VVS now produces THREE outcomes
-    VVS -->|VALID| ValidPath
-    VVS -->|INVALID| InvalidPath  
-    VVS -->|PROVISIONAL| ProvisionalPath
-
-    %% VALID path – the happy path
-    ValidPath --> BOBJ_VALID[(Durable Ballot Box – VALID<br/>Encrypted ballots<br/>Append-only, WORM, Merkle-rooted)]:::valid
-    BOBJ_VALID --> TS_VALID[Tallying Service<br/>Only consumes VALID ballots]
-
-    %% INVALID path – must be preserved forever for audit
-    InvalidPath --> BOBJ_INVALID[(Durable Ballot Box – INVALID<br/>Encrypted ballot + full rejection details<br/>Reason codes, timestamps, rule violated)]:::invalid
-    BOBJ_INVALID --> PublicBB_Invalid[Public Bulletin Board<br/>Section: Rejected Ballots<br/>Hash + Reason + Timestamp]
-
-    %% PROVISIONAL path – human in the loop
-    ProvisionalPath --> BOBJ_PROV[(Durable Ballot Box – PROVISIONAL<br/>Encrypted ballot + provisional metadata<br/>Held in escrow until resolved)]:::provisional
-    BOBJ_PROV --> AdminQueue[Administrator Work Queue<br/>Election Admin UI]
-    AdminQueue -->|Resolve → VALID| MoveToValid[Move to VALID box<br/>+ publish resolution event]
-    AdminQueue -->|Resolve → INVALID| MoveToInvalid[Move to INVALID box<br/>+ publish resolution event]
-
-    %% Public transparency – everything is visible
-    BOBJ_VALID --> PublicBB_Valid[Public Bulletin Board<br/>Section: Accepted Ballots<br/>Tracker hashes]
-    BOBJ_INVALID --> PublicBB_Invalid
-    BOBJ_PROV --> PublicBB_Prov[Public Bulletin Board<br/>Section: Provisional Ballots<br/>Pending resolution]
-
-    %% Tallying only ever touches VALID
-    TS_VALID --> FinalTally[Final Certified Results]
-    FinalTally --> PublicBB_Final[Public Bulletin Board<br/>Final Commitments & Proofs]
-
-    %% Event sourcing still captures everything
-    VVS --> EventStore[(Central Event Log)]
-    AdminQueue --> EventStore
-    MoveToValid --> EventStore
-    MoveToInvalid --> EventStore
-
-    %% Styling
-    classDef valid fill:#d4edda,stroke:#28a745,stroke-width:3px,color:#000
-    classDef invalid fill:#f8d7da,stroke:#dc3545,stroke-width:3px,color:#000
-    classDef provisional fill:#fff3cd,stroke:#ffc107,stroke-width:3px,color:#000
-    classDef storage fill:#f96,stroke:#333,color:#fff
-    ```
