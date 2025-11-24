@@ -153,7 +153,7 @@ graph TB
     VoterService --> EventStore
 
     %% Districting integration (post-MVP)
-    VORCH[[Voter Orchestration Service<br/>Saga coordinator]] --> JDPS[Districting/Precinct Service]:::internal
+    VORCH[[Voter Orchestration Service<br/>Saga coordinator]] --> Boundary[Boundary]:::internal
     VORCH --> VoterService
 
     %% Styling
