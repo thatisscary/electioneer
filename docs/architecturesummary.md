@@ -86,7 +86,7 @@ stateDiagram-v2
 ```
 
 ### Current Diagrams (in project repo)
-1. High-level domain diagram [(domains.md – original + updates)](domain.md)
+1. High-level domain diagram [(domains.md – original + updates)](domains.md)
 2. [Vote Validation Service internal detail](votervalidation.md)
 3. [Durable Ballot Box + three-state persistence flow](durableballotbox.md)
 4. [Full ballot state transition diagram (above)](ballotstatetransitions.md)
