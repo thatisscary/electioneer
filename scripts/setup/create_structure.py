@@ -67,7 +67,7 @@ async def print_structure(domain_path: str) -> int:
 
 
 def create_subdirectories(domain_path: str):
-    subdirs = ['src', 'tests', 'persistence'] + (args.additional_subdirs or [])
+    subdirs = ['src', 'tests', 'persistence','infra'] + (args.additional_subdirs or [])
     for subdir in subdirs:
         subdir_path = os.path.join(domain_path, subdir)
         if not os.path.exists(subdir_path):
