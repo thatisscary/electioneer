@@ -1,58 +1,4 @@
-```mermaid
-graph LR
-    
-
- subgraph voter[Voter Domain]
-        externalRegApi[External Registration API]--ACL-->voterService
-        externalRegApi:::external
-        voterUI{{"Voter Registration UI"}}-->
-        voterBff[[Voter Orchestration Service]]-->voterService
-        registrarAdminUI{{"Registration UI"}}
-        voterService[Voter Service]-->voters
-        voterService--validationService
-        voterService-->VRN
-        validationService["Voter Validation Service"]
-        VRN["Voter Notifiction Service"]
-        voters[("Voter Db<br>PostgreSql")]
-  end
-
-
- voter:::domain
- VRN:::notify
- 
- validationService:::internal
- voters:::storage
- voterBff:::orch
- registrarAdminUI:::ui   
-
-
- subgraph legend[Legend]
-  external[Public API]
-  external:::external
-  internal[internal service]
-  internal:::internal
-  storage[(Storage)]
-  storage:::storage
-  ui{{UI}}
-  ui:::ui
-  orch[[Orchestration/BFF]]
-  orch:::orch
-
- end
-
-classDef external  fill:#f92, color:#fffffff,font-size:14px
-classDef internal stroke:#f00, fill:lightgrey,  color:#2afff,font-size:14px
-
-classDef notify stroke:#00f, fill:#4D9900, color:#ffffff,font-size:20px
-
-classDef storage fill:#f96, color:#FFFccc,font-size:20px
-
-classDef ui fill:#f9ffff, stroke:#333, stroke-width:2px,font-size:20px
-
-classDef domain fill:#afcddd, stroke:#333, stroke-width:2px,font-size:30px
-
-classDef orch fill:#aac000, stroke:#333, stroke-width:2px,font-size:14px
-```
+# Durable Ballot Box
 
 ```mermaid
 graph TB
@@ -98,4 +44,5 @@ graph TB
     classDef invalid fill:#f8d7da,stroke:#dc3545,stroke-width:3px,color:#000
     classDef provisional fill:#fff3cd,stroke:#ffc107,stroke-width:3px,color:#000
     classDef storage fill:#f96,stroke:#333,color:#fff
+    
     ```
