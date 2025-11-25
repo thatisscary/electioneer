@@ -11,7 +11,7 @@ Build “Electioneer” – a safe, secure, verifiable internet voting system th
 - Voter Domain  
 - Ballot Domain  
 - Registrar Domain  
-- Districting/Precinct Domain  
+- Boundary Domain  
 - Jurisdiction Admin Domain  
 - Infrastructure (Auth, API Gateway, Notification Gateway, Monitoring, CI/CD)
 
@@ -63,7 +63,7 @@ All ballots (regardless of status) are permanently preserved:
 ### 8. Voter Registration (MVP Scope)
 - Voter Orchestration Service (VORCH) coordinates registration saga
 - MVP: basic validation only
-- Post-MVP: address changes that cross precincts/districts → coordination with Districting Service
+- Post-MVP: address changes that cross precincts/districts → coordination with Boundary Service
 
 ### 9. Authentication (Still Open)
 - Central AUTH service shown (MFA, WebAuthn, future hardware-bound keys)
@@ -86,7 +86,7 @@ stateDiagram-v2
 ```
 
 ### Current Diagrams (in project repo)
-1. High-level domain diagram [(domains.md – original + updates)](domains.md)
+1. High-level domain diagram [(domains.md – original + updates)](domain.md)
 2. [Vote Validation Service internal detail](votervalidation.md)
 3. [Durable Ballot Box + three-state persistence flow](durableballotbox.md)
 4. [Full ballot state transition diagram (above)](ballotstatetransitions.md)
