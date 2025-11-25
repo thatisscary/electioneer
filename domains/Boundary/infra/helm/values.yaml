@@ -1,0 +1,13 @@
+# helm/values.yaml
+postgis:
+  enabled: true
+  persistence:
+    size: 500Gi   # big enough for every precinct in the U.S. + history
+
+boundary-service:
+  image: electioneer/boundary-service:latest
+  env:
+    - name: POSTGIS_DSN
+      value: "postgres://boundary:pw@postgis:5432/boundary"
+    - name: S3_IMPORT_BUCKET
+      value: "electioneer-boundary-imports"

@@ -1,0 +1,28 @@
+# docker/postgis/Dockerfile
+FROM postgis/postgis:16-3.4-alpine
+
+LABEL maintainer="Electioneer Team"
+LABEL description="PostGIS for Boundary Domain – local dev + CI"
+
+# Install useful tools for debugging/importing inside the container
+RUN apk add --no-cache \
+    bash \
+    curl \
+    postgresql-client \
+    postgis \
+    gdal \
+    geos \
+    proj \
+    && rm -rf /var/cache/apk/*
+
+# Create directory for init scripts (we'll mount our schema here)
+RUN mkdir -p /docker-entrypoint-initdb.d
+
+# Healthcheck
+HEALTHCHECK --interval=10s --timeout=3s --start-period=20s --retries=3 \
+  CMD pg_isready -U postgres || exit 1
+
+# Expose the standard port
+EXPOSE 5432
+
+# Default command is provided by the base image

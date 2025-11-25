@@ -1,0 +1,29 @@
+# docker-compose.yml (root of repo)
+version: "3.9"
+
+services:
+  postgis:
+    build:
+      context: .
+      dockerfile: domains/Boundary/persistence/docker/postgis/Dockerfile
+    container_name: electioneer-postgis
+    restart: unless-stopped
+    ports:
+      - "5432:5432"                 # host:container
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres   # change in prod!!
+      POSTGRES_DB: electioneer
+    volumes:
+      - postgis-data:/var/lib/postgresql/data
+      - ./domains/Boundary/persistence/docker/postgis/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
+      - ./domains/Boundary/persistence/sql/sample-imports:/imports:ro   # optional but recommended for local dev
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgis-data:
+    driver: local
