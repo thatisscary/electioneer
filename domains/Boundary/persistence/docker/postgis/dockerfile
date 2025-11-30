@@ -6,14 +6,14 @@ LABEL description="PostGIS for Boundary Domain – local dev + CI"
 
 # Install useful tools for debugging/importing inside the container
 RUN apk add --no-cache \
-    bash \
-    curl \
-    postgresql-client \
-    postgis \
     gdal \
+    gdal-tools \
+    gdal-dev \
     geos \
     proj \
-    && rm -rf /var/cache/apk/*
+    bash \
+    curl \
+    postgresql-client
 
 # Create directory for init scripts (we'll mount our schema here)
 RUN mkdir -p /docker-entrypoint-initdb.d
@@ -25,4 +25,3 @@ HEALTHCHECK --interval=10s --timeout=3s --start-period=20s --retries=3 \
 # Expose the standard port
 EXPOSE 5432
 
-# Default command is provided by the base image

@@ -1,0 +1,29 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "precinct_id": "01-001",
+        "jurisdiction_id": "00000000-0000-0000-0000-000000000001",
+        "boundary_set_id": "400ab93e-2016-4cfd-a3ed-7fb00486d06a",
+        "created_by": "test user",
+        "name": "Downtown Precinct",
+        "ballot_style_id": "bs-general-2024",
+        "properties": {}
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-122.4194, 37.7749],
+            [-122.4194, 37.7850],
+            [-122.4085, 37.7850],
+            [-122.4085, 37.7749],
+            [-122.4194, 37.7749]
+          ]
+        ]
+      }
+    }
+  ]
+}
