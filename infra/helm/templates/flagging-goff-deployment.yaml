@@ -1,0 +1,5 @@
+# infra/helm/templates/flagging-goff-deployment.yaml
+image:
+  repository: {{ .Values.flagging.goff.image.repository }}
+  tag: {{ .Values.flagging.goff.image.tag }}
+  pullPolicy: IfNotPresent

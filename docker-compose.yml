@@ -21,5 +21,55 @@ services:
       timeout: 5s
       retries: 5
 
+
+# ------------------------------------------------------------------
+  # GO Feature Flag relay proxy (self-hosted OpenFeature provider)
+  # ------------------------------------------------------------------
+  goff-relay:
+    image: ghcr.io/open-feature/flagd-goff:latest
+    container_name: electioneer-goff-relay
+    restart: unless-stopped
+    command: |
+      start
+      --uri file:/etc/goff/config.yaml
+      --port 8013
+    volumes:
+      - ./infra/flagging/goff/config.yaml:/etc/goff/config.yaml:ro
+    ports:
+      - "8013:8013"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:8013/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # ------------------------------------------------------------------
+  # Future services (commented but ready to go)
+  # ------------------------------------------------------------------
+  # jaeger:
+  #   image: jaegertracing/all-in-one:1.53
+  #   container_name: electioneer-jaeger
+  #   restart: unless-stopped
+  #   ports:
+  #     - "16686:16686"   # UI
+  #     - "14268:14268"   # collector HTTP
+  #     - "14250:14250"   # gRPC
+
+  # seq:
+  #   image: datalust/seq:latest
+  #   container_name: electioneer-seq
+  #   restart: unless-stopped
+  #   environment:
+  #     ACCEPT_EULA: Y
+  #   ports:
+  #     - "5341:5341"     # Web UI
+  #     - "5340:80"
+
 volumes:
   postgis-data:
+    driver: local
+
+networks:
+  default:
+    name: electioneer-network
+    driver: bridge

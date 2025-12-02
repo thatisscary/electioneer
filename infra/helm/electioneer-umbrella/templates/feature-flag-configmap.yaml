@@ -1,0 +1,8 @@
+# infra/helm/electioneer-umbrella/templates/feature-flag-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: electioneer-feature-flags
+data:
+  feature-flags.yaml: |
+{{ .Files.Get "config/feature-flags.yaml" | indent 4 }}

@@ -1,0 +1,6 @@
+flagging:
+  provider: goff          # ← change to "unleash" when you switch
+  goff:
+    endpoint: http://relay-proxy:1031
+  # unleash: { ... }     # future section
+

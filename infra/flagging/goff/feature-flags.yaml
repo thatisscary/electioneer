@@ -1,0 +1,19 @@
+online-voting-enabled:
+  default: true
+  percentage: 100
+  rules:
+  - key: jurisdiction
+    operator: equals
+    value: "pilot-county-2025"
+    variant: true
+
+new-receipt-qr-code:
+  default: false
+  percentage: 5 # 5 % gradual rollout
+
+zk-proof-v2:
+  default: false
+  targeting:
+  - key: state_fips
+    values: [ "06", "48" ] # California & Texas only
+    variant: true

@@ -1,0 +1,3 @@
+# infra/helm/electioneer-umbrella/values.yaml
+openfeature:
+  provider: gofeatureflag # still correct — this is the provider name, not the package name

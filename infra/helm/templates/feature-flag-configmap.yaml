@@ -1,0 +1,23 @@
+{{- /* ------------------------------------------------------------- */}}
+{{- /*  Feature Flag ConfigMap – supports multiple providers easily */}}
+{{- /* ------------------------------------------------------------- */}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: electioneer-feature-flags
+  labels:
+    app.kubernetes.io/component: feature-flags
+data:
+  {{- /* Choose the correct flag file based on the active provider */}}
+  {{- $provider := .Values.flagging.provider | default "goff" }}
+
+  {{- if eq $provider "goff" }}
+  flags.yaml: |
+    {{- .Files.Get "config/_goff.tpl" | nindent 4 }}
+  {{- else if eq $provider "unleash" }}
+  flags.yaml: |
+    {{- .Files.Get "config/_unleash.tpl" | nindent 4 }}
+  {{- else }}
+    {{- fail (printf "Unsupported flagging.provider: %s" $provider) }}
+  {{- end }}
+
