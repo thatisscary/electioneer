@@ -1,0 +1,256 @@
+openapi: 3.1.0
+info:
+  title: Electioneer Public API
+  description: |
+    Secure, verifiable, open-source election platform.
+    All resources are scoped to a specific election via `electionId`.
+  version: 1.0.0
+  contact:
+    url: https://github.com/electioneer/electioneer
+  license:
+    name: AGPL-3.0
+    url: https://www.gnu.org/licenses/agpl-3.0.en.html
+
+servers:
+  - url: https://api.electioneer.dev/v1
+    description: Production
+  - url: https://api.staging.electioneer.dev/v1
+    description: Staging / Development
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    electionId:
+      name: electionId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: ^[a-z0-9-]+$
+        minLength: 10
+        maxLength: 64
+      description: Unique election identifier (e.g. ca-2026-general)
+
+    contestId:
+      name: contestId
+      in: path
+      required: true
+      schema:
+        type: string
+
+    receiptHash:
+      name: receiptHash
+      in: path
+      required: true
+      schema:
+        type: string
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error: { type: string }
+        detail: { type: string }
+        timestamp: { type: string, format: date-time }
+
+    ElectionSummary:
+      type: object
+      required: [electionId, name, status]
+      properties:
+        electionId: { type: string }
+        name: { type: string }
+        status:
+          type: string
+          enum: [Draft, PendingApproval, Approved, Active, Closed, Archived]
+        electionDate: { type: string, format: date }
+        votingStart: { type: string, format: date-time }
+        votingEnd: { type: string, format: date-time }
+        jurisdictionLevel:
+          type: string
+          enum: [Federal, State, County, City, District, Special]
+
+security:
+  - BearerAuth: []
+
+paths:
+  /elections:
+    get:
+      :
+      summary: List elections the caller can see or participate in
+      responses:
+        '200':
+          description: Array of elections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ElectionSummary'
+
+    post       :
+      summary: Create a new local election (county/city/district admins only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, electionDate, votingStart, votingEnd, type]
+              properties:
+                name: { type: string }
+                electionDate: { type: string, format: date }
+                votingStart: { type: string, format: date-time }
+                votingEnd: { type: string, format: date-time }
+                type:
+                  type: string
+                  enum: [General, Primary, Special, Referendum, Runoff]
+      responses:
+        '201':
+          description: Election created
+          headers:
+            Location:
+              schema:
+                type: string
+                example: /elections/antioch-2025-local
+
+  /elections/{electionId}:
+    get:
+      summary: Get detailed information about a specific election
+      parameters:
+        - $ref: '#/components/parameters/electionId'
+      responses:
+        '200':
+          description: Election details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElectionSummary'
+
+  /elections/{electionId}/join:
+    post:
+      summary: Join an existing higher-level election
+      parameters:
+        - $ref: '#/components/parameters/electionId'
+      responses:
+        '204':
+          description: Successfully joined
+        '403':
+          description: Not eligible to join
+
+  /elections/{electionId}/ballot:
+    get:
+      summary: Retrieve the current ballot definition (draft or locked)
+      parameters:
+        - $ref: '#/components/parameters/electionId'
+      responses:
+        '200':
+          description: Complete ballot JSON
+
+  /elections/{electionId}/contests:
+    post:
+      summary: Create a new contest / proposition
+      parameters:
+        - $ref: '#/components/parameters/electionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              # contest schema will be expanded later
+      responses:
+        '201':
+          description: Contest created (draft)
+
+  /elections/{electionId}/contests/{contestId}/submit-review:
+    post:
+      summary: Submit a contest for review (triggers approval workflow)
+      parameters:
+        - $ref: '#/components/parameters/electionId'
+        - $ref: '#/components/parameters/contestId'
+      responses:
+        '202':
+          description: Submitted for review
+
+  /elections/{electionId}/ballot/approve:
+    post:
+      summary: Final approval → lock the ballot (only Contest Approver)
+      parameters:
+        - $ref: '#/components/parameters/electionId'
+      responses:
+        '204:
+          description: Ballot locked and hashed
+
+  /elections/{electionId}/vote:
+    post:
+      summary: Submit encrypted ballot + proof
+      parameters:
+        - $ref: '#/components/parameters/electionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [encryptedBallot, proof]
+              properties:
+                encryptedBallot: { type: string }
+                proof: { type: object }
+      responses:
+        '202':
+          description: Ballot accepted — receipt issued
+          headers:
+            Location:
+              description: Receipt verification URL
+              schema: { type: string }
+        '403':
+          description: Election not active or voter ineligible
+
+  /jurisdictions/{electionId}/access-requests:
+    post:
+      summary: Request administrative access for an election
+      parameters:
+        - $ref: '#/components/parameters/electionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fullName, email, phone, jurisdictionPath]
+              properties:
+                fullName: { type: string }
+                title: { type: string }
+                email: { type: string, format: email }
+                phone: { type: string }
+                address: { type: string }
+                jurisdictionPath: { type: string }
+      responses:
+        '202':
+          description: Request submitted — magic link sent
+
+  /public/elections/{electionId}/receipts/{receiptHash}:
+    get:
+      summary: Public receipt verification (no authentication required)
+      parameters:
+        - $ref: '#/components/parameters/electionId'
+        - $ref: '#/components/parameters/receiptHash'
+      responses:
+        '200':
+          description: Receipt found + Merkle proof
+        '404':
+          description: Receipt not found
+
+  /public/elections/{electionId}/bulletin-board:
+    get:
+      summary: Public bulletin board — all events, receipts, proofs
+      parameters:
+        - $ref: '#/components/parameters/electionId'
+      responses:
+        '200':
+          description: Streamable event log + current Merkle root

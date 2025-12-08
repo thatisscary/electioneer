@@ -1,15 +1,16 @@
-# import_tiger2023_to_postgis.py
+# import_tiger2025_to_postgis.py
 import yaml
 import subprocess
 from pathlib import Path
 import sys
-
+from file_definitions import definitions as get_definitions
+from file_definitions import data_file_def
 # ------------------------------------------------------------------
 # CONFIG — CHANGE ONLY THESE IF NEEDED
 # ------------------------------------------------------------------
 YAML_FILE       = Path("usa_states_fips.yaml")
-DATA_DIR        = Path("./data/tiger2023")
-PG_CONN         = "PG:host=localhost port=5432 dbname=votingdb user=postgrest password=yourpassword"  # ← edit if needed
+DATA_DIR        = Path("./data/tiger2025")
+PG_CONN         = "PG:host=localhost port=5432 dbname=electioneer user={} password={}"  # ← edit if needed
 PARALLEL        = True          # Set False for pure sequential (safer, slower)
 MAX_PARALLEL    = 8             # Safe number of concurrent ogr2ogr processes
 
@@ -19,6 +20,11 @@ MAX_PARALLEL    = 8             # Safe number of concurrent ogr2ogr processes
 with open(YAML_FILE) as f:
     states = yaml.safe_load(f)["states"]
 
+definitions = get_definitions()
+print("Using definitions:")
+print (len(definitions), "definitions found:")
+for d in definitions:
+    print(f"  - {d.description} ({d.path})")
 # ------------------------------------------------------------------
 # Helper: run ogr2ogr import for one file
 # ------------------------------------------------------------------
@@ -77,7 +83,7 @@ def import_layer(state_abbr: str, layer_type: str, zip_path: Path):
 
     # Add GIST index (in case ogr2ogr missed it)
     subprocess.run([
-        "psql", "-h", "localhost", "-p", "5432", "-U", "postgrest", "-d", "votingdb",
+        "psql", "-h", "localhost", "-p", "5432", "-U", "postgres", "-d", "votingdb",
         "-c", f"CREATE INDEX IF NOT EXISTS {schema}_{table_name}_geom_idx ON {full_table} USING GIST (geom);"
     ], check=True)
 
@@ -90,8 +96,8 @@ def process_state(state):
 
     print(f"\nProcessing {state['name']} ({abbr.upper()})")
 
-    vtd_zip = DATA_DIR / "vtd" / abbr / f"tl_2023_{fips}_vtd23.zip"
-    cong_zip = DATA_DIR / "cong" / abbr / f"tl_2023_{fips}_cong23.zip"
+    vtd_zip = DATA_DIR / "vtd" / abbr / f"tl_2025_{fips}_vtd23.zip"
+    cong_zip = DATA_DIR / "cong" / abbr / f"tl_2025_{fips}_cong23.zip"
 
     if vtd_zip.exists():
         import_layer(abbr, "vtd", vtd_zip)
@@ -107,7 +113,7 @@ def process_state(state):
 # Run
 # ------------------------------------------------------------------
 if __name__ == "__main__":
-    print("Starting bulk import of TIGER/2023 VTDs + Congressional Districts into PostGIS\n")
+    print("Starting bulk import of TIGER/2025 VTDs + Congressional Districts into PostGIS\n")
 
     if PARALLEL:
         from concurrent.futures import ProcessPoolExecutor
