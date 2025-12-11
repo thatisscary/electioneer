@@ -1,17 +1,39 @@
-# download_tiger2023.py
+# download_tiger_files.py
+# ------------------------------------------------------------------    
 import yaml
 import asyncio
 import aiohttp
 from pathlib import Path
 import sys
+import datetime
+import argparse
 from file_definitions import definitions as get_definitions
 from file_definitions import data_file_def
 # ------------------------------------------------------------------
 # Config
 # ------------------------------------------------------------------
+
+
+parser = argparse.ArgumentParser(
+    prog='create_structure.py',
+    usage='%(prog)s [options]',
+    description='Creates a default structure for uncovered domains. Creates default structure... ',
+    epilog='''
+            Example usage: create_structure.py --domain_root ./my_project/domains''')
+parser.add_argument('-y','--year', type=str, required=True, help='The year for which to download TIGER files.')
+args = parser.parse_args()
+def check_arguments():
+    year = args.year
+    
+    if year  > datetime.datetime.now().year:
+        print(f"Error: Invalid year '{year}'. Year must be the current year or earlier.")
+        sys.exit(1)
+    return year
+
+
 YAML_FILE = Path("usa_states_fips.yaml")          # <-- your file from earlier
-BASE_DIR = Path("./data/tiger2025")              # <-- your desired output directory
-BASE_URL = "https://www2.census.gov/geo/tiger/TIGER2025"
+BASE_DIR = Path(f"./data/tiger{args.year}")              # <-- your desired output directory
+BASE_URL = f"https://www2.census.gov/geo/tiger/TIGER{args.year}"
 
 # Create output dirs
 
@@ -66,7 +88,6 @@ async def main():
             await asyncio.gather(*tasks[i:i+20])
 
 if __name__ == "__main__":
-    print(f"Starting download of TIGER/2025 files (50 states + 6 territories x 3 layers)...")
+    print(f"Starting download of TIGER/{args.year} files (50 states + 6 territories x 3 layers)...")
     asyncio.run(main())
-    print("All done!"
-)
+    print("All done!")
