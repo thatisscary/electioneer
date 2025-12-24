@@ -1,0 +1,34 @@
+﻿ProjectKey,Summary,Issue Type,Epic Name,Priority,Labels,Acceptance Criteria,Assignee,Components
+EL,Election Management & Participation,Epic,,Blocker,"election,core","- Admins can join state/federal elections
+- Admins can create local-only elections
+- All decisions remain state-controlled
+- Correct visibility rules enforced",,"Election,Jurisdiction"
+EL,"As a jurisdiction admin, I can view all elections I am eligible to join so I know which elections affect my area",Story,ELEC-100,High,"election,dashboard","- My Elections dashboard shows two tabs: 'Joinable Elections' and 'My Elections'
+- Joinable Elections list is auto-populated from parent jurisdictions
+- Each row shows election name, date, type, and jurisdiction level
+- Only elections from higher-level jurisdictions appear",,Election
+EL,"As a jurisdiction admin, I can join an existing state or federal election with one click",Story,ELEC-100,High,"election,join","- 'Join' button visible only on eligible elections
+- Clicking Join adds my jurisdiction as participant instantly
+- Confirmation toast + audit log entry
+- I am immediately redirected to Ballot Design for that election",,Election
+EL,"As a jurisdiction admin, I can create a new local-only election",Story,ELEC-100,High,"election,create","- 'Create New Local Election' button visible only if jurisdiction level allows (county, city, district)
+- Form requires: name, date, voting start/end, election type
+- On save → election created with status Draft and scoped only to my jurisdiction",,Election
+EL,"As a state-level admin, I can create a statewide or federal-contest election that becomes joinable downstream",Story,ELEC-100,High,"election,statewide","- State admins see 'Create Statewide Election' option
+- New election automatically marked as 'joinable' for all subordinate jurisdictions
+- Lower-level admins see it immediately in their Joinable list",,Election
+EL,The system prevents counties/cities from creating statewide elections,Story,ELEC-100,Blocker,"election,security","- Non-state admins do not see 'Create Statewide Election' option
+- Attempting to force via API returns 403 Forbidden
+- Audit log records attempted violation",,"Election,Jurisdiction"
+EL,"As an admin, I can see a unified list of all elections my jurisdiction is participating in",Story,ELEC-100,Medium,"election,dashboard","- 'My Elections' tab shows both joined and locally created elections
+- Each row shows status (Draft, Approved, Active, Closed)",,Election
+EL,"As an admin, I can proceed from any election directly to Ballot Design",Story,ELEC-100,High,"election,navigation","- 'Proceed to Ballot Design' button on every election row
+- Click opens Ballot domain for that specific election",,"Election,Ballot"
+EL,Election visibility respects jurisdiction hierarchy at all times,Story,ELEC-100,Blocker,"election,security","- County admin never sees elections from other counties
+- City admin only sees their own local + joined state elections
+- State admin sees everything",,Jurisdiction
+EL,"As an admin, I can view detailed election metadata (dates, type, participating jurisdictions)",Story,ELEC-100,Medium,"election,reporting","- Election Details page shows full metadata
+- List of participating jurisdictions
+- Creation and modification timestamps",,Election
+EL,All election creation/joining actions are logged in ElectionObserver,Story,ELEC-100,High,"audit,observer","- Every join/create emits event to ElectionObserver
+- Visible in public bulletin board under 'Election Lifecycle Events'",,"Election,ElectionObserver"

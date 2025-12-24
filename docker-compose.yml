@@ -26,15 +26,18 @@ services:
   # GO Feature Flag relay proxy (self-hosted OpenFeature provider)
   # ------------------------------------------------------------------
   goff-relay:
-    image: ghcr.io/open-feature/flagd-goff:latest
+    build: 
+      context: .
+      dockerfile: infra/flagging/goff/relay-proxy/Dockerfile
     container_name: electioneer-goff-relay
     restart: unless-stopped
-    command: |
-      start
-      --uri file:/etc/goff/config.yaml
+    command: /go-feature-flag
+      start 
+      --uri file:/etc/opt/goff/config.yaml
       --port 8013
     volumes:
-      - ./infra/flagging/goff/config.yaml:/etc/goff/config.yaml:ro
+      - ./infra/flagging/goff/goff-proxy.yaml:/etc/opt/goff/goff-proxy.yaml:ro
+      - ./infra/config/goff/flags.goff.yaml:/goff/flags.goff.yaml:ro  # ← Fixed: exact path + .goff.yaml
     ports:
       - "8013:8013"
     healthcheck:
@@ -65,9 +68,35 @@ services:
   #     - "5341:5341"     # Web UI
   #     - "5340:80"
 
+  # vault (HashiCorp Vault for secret management)  
+  vault:
+    image: hashicorp/vault:1.15  # Latest stable version; pin as needed
+    container_name: electioneer-vault
+    ports:
+      - "8200:8200"  # Expose Vault API/UI on localhost:8200
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: "dev-root-token"  # Fixed root token for dev (change in prod)
+      VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+      VAULT_ADDR: "http://127.0.0.1:8200"  # For internal access
+    cap_add:
+      - IPC_LOCK  # Required for Vault's mlock (memory locking)
+    volumes:
+      - vault-data:/vault/file  # Persist secrets across restarts
+      - ./config/vault:/vault/config  # Mount custom config if needed (e.g., policies)
+    command: "server -dev"  # Dev mode: auto-unseals, in-memory storage
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+
+
 volumes:
-  postgis-data:
+  vault-data:
     driver: local
+  postgis-data:
+    driver: local  
 
 networks:
   default:
