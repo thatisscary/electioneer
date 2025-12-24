@@ -16,7 +16,7 @@ graph TD
         J[Jurisdiction]
         E[Election]
         B[Ballot]
-        EOBS[ElectionObserver]
+        EO[ElectionObserver]
         BB[BallotBox]
     end
 
