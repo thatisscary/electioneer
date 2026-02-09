@@ -1,8 +1,0 @@
-services:
-  relay-proxy:
-    build:
-      context: .
-      dockerfile: infra/flagging/goff/relay-proxy/Dockerfile
-    ports:
-      - "1031:1031"
-    volumes: []   # no longer needed – config is baked or mounted via build
